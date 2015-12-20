@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <script src="canvas.js"></script>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <script>
+            var n = 32;
+            var k = 3;
+            var canv = canvas('canvas');
+            var draws = range(n).map(i => i/n*tau).map(i =>
+                canv.makeCircle(
+                    t => [100 + 70*sin(i*k + t/10), i],
+                    t => 5,
+                    t => hsv(i/tau, 1, 1)
+                )
+            );
+            canv.animateAll(draws);
+        </script>
+    </body>
+</html>
