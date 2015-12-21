@@ -3,19 +3,49 @@
         <script src="canvas.js"></script>
     </head>
     <body>
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas1"></canvas>
         <script>
-            var n = 32;
-            var k = 3;
-            var canv = canvas('canvas');
-            var draws = range(n).map(i => i/n*tau).map(i =>
-                canv.makeCircle(
-                    t => [100 + 70*sin(i*k + t/10), i],
-                    t => 5,
-                    t => hsv(i/tau, 1, 1)
+            var n1 = 16;
+            var k1 = 3;
+            var canv1 = canvas('canvas1');
+            canv1.animateAll(
+                range(n1).map(i => i/n1*tau).map(i =>
+                    canv1.makeCircle(
+                        t => [100 + 70*sin(i*k1 + t/10), i],
+                        5,
+                        hsv(i/tau, 1, 1)
+                    )
                 )
             );
-            canv.animateAll(draws);
+        </script>
+        <canvas id="canvas2"></canvas>
+        <script>
+            var n2 = 48;
+            var k2 = 2;
+            var canv2 = canvas('canvas2');
+            canv2.animateAll(
+                range(n2).map(i => i/n2*tau).map(i =>
+                    function (canvas, t) {
+                        var pol1 = t => [100 + 40*sin(i*k2 + t/20), i];
+                        var pol2 = t => [100 + 80*sin(-i*k2 + t/20), i];
+                        canv2.makeCircle(
+                            pol1,
+                            3,
+                            '#ffffff'
+                        )(canvas, t);
+                        canv2.makeCircle(
+                            pol2,
+                            3,
+                            '#ffffff'
+                        )(canvas, t);
+                        canv2.makeLine(
+                            pol1,
+                            pol2,
+                            '#ffffff'
+                        )(canvas, t);
+                    }
+                )
+            );
         </script>
     </body>
 </html>

@@ -72,7 +72,7 @@ function canvas(id, attrs) {
     }
 
     var _defaults = {
-        strokeStyle: null,
+        strokeStyle: '#ffffff',
         fillStyle: '#ffffff'
     };
 
@@ -91,29 +91,60 @@ function canvas(id, attrs) {
         };
     }
 
+    var _lineCartesian = function (car1, car2, attrs) {
+        car1 = _center(car1);
+        car2 = _center(car2);
+        var x1 = car1[0]; var y1 = car1[1];
+        var x2 = car2[0]; var y2 = car2[1];
+
+        attrs = _setup(attrs);
+
+        _ctx.moveTo(x1, y1);
+        _ctx.lineTo(x2, y2);
+        _ctx.stroke();
+    };
+
     var _circleCartesian = function (car, r, attrs) {
         car = _center(car);
         var x = car[0]; var y = car[1];
 
         attrs = _setup(attrs);
-        var strokeStyle = attrs['strokeStyle'];
-        var fillStyle = attrs['fillStyle'];
+        var makeStroke = attrs['strokeStyle'] !== null;
+        var makeFill = attrs['fillStyle'] !== null;
 
         _ctx.beginPath();
         _ctx.arc(x, y, r, 0, 2*pi);
-        if (strokeStyle !== null) _ctx.stroke();
-        if (fillStyle !== null) _ctx.fill();
+        if (makeStroke) _ctx.stroke();
+        if (makeFill) _ctx.fill();
         _ctx.closePath();
 
         return self;
-    }
+    };
+
+    var _linePolar = function (pol1, pol2, attrs) {
+        return _lineCartesian(_pol2Car(pol1), _pol2Car(pol2), attrs);
+    };
 
     var _circlePolar = function (pol, r, attrs) {
         return _circleCartesian(_pol2Car(pol), r, attrs);
     };
 
+    function funcOrConst(f) {
+        return typeof(f) === 'function' ? f : t => f;
+    }
+
     var _makeCircle = function (pol, r, col) {
+        pol = funcOrConst(pol);
+        r = funcOrConst(r);
+        col = funcOrConst(col);
         return (canvas, t) => canvas.circlePolar(pol(t), r(t), {fillStyle: col(t)});
+    }
+
+    var _makeLine = function (pol1, pol2, col) {
+        pol1 = funcOrConst(pol1);
+        pol2 = funcOrConst(pol2);
+        col = funcOrConst(col);
+        return (canvas, t) => canvas.linePolar(pol1(t), pol2(t), {fillStyle: col(t)});
     }
 
     var _animate = function (draw, t) {
@@ -144,8 +175,11 @@ function canvas(id, attrs) {
     var self = {
         animate: _animate,
         animateAll: _animateAll,
+        makeLine: _makeLine,
         makeCircle: _makeCircle,
         clear: _clear,
+        lineCartesian: _lineCartesian,
+        linePolar: _linePolar,
         circleCartesian: _circleCartesian,
         circlePolar: _circlePolar
     };
