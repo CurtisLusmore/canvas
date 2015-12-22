@@ -43,6 +43,24 @@ function hexByte(n) {
     return hex;
 }
 
+function car(x, y) {
+    return {
+        x: x,
+        y: y,
+        r: Math.sqrt(x*x + y*y),
+        t: Math.atan2(x, y)
+    };
+}
+
+function pol(r, t) {
+    return {
+        x: r*Math.cos(t),
+        y: r*Math.sin(t),
+        r: r,
+        t: t
+    };
+}
+
 function range(n) {
     var arr = [];
     for (var ind = 0; ind < n; ind++) {
@@ -50,6 +68,8 @@ function range(n) {
     }
     return arr;
 }
+
+Array.prototype.concatMap = function (f) { return this.map(f).reduce((l, r) => l.concat(r)); };
 
 function canvas(id, attrs) {
     attrs = attrs || {};
@@ -61,14 +81,9 @@ function canvas(id, attrs) {
     var _height = attrs['height'] || 500;
     var _background = attrs['background'] || '#000000';
 
-    function _center(car) {
-        var x = car[0]; var y = car[1];
+    function _center(coor) {
+        var x = coor.x; var y = coor.y;
         return [_width/2 + x, _height/2 - y];
-    }
-
-    function _pol2Car(pol) {
-        var r = pol[0]; var t = pol[1];
-        return [r*cos(t), r*sin(t)];
     }
 
     var _defaults = {
@@ -91,9 +106,9 @@ function canvas(id, attrs) {
         };
     }
 
-    var _lineCartesian = function (car1, car2, attrs) {
-        car1 = _center(car1);
-        car2 = _center(car2);
+    var _line = function (coor1, coor2, attrs) {
+        car1 = _center(coor1);
+        car2 = _center(coor2);
         var x1 = car1[0]; var y1 = car1[1];
         var x2 = car2[0]; var y2 = car2[1];
 
@@ -104,8 +119,8 @@ function canvas(id, attrs) {
         _ctx.stroke();
     };
 
-    var _circleCartesian = function (car, r, attrs) {
-        car = _center(car);
+    var _circle = function (coor, r, attrs) {
+        car = _center(coor);
         var x = car[0]; var y = car[1];
 
         attrs = _setup(attrs);
@@ -121,42 +136,34 @@ function canvas(id, attrs) {
         return self;
     };
 
-    var _linePolar = function (pol1, pol2, attrs) {
-        return _lineCartesian(_pol2Car(pol1), _pol2Car(pol2), attrs);
-    };
-
-    var _circlePolar = function (pol, r, attrs) {
-        return _circleCartesian(_pol2Car(pol), r, attrs);
-    };
-
     function funcOrConst(f) {
         return typeof(f) === 'function' ? f : t => f;
     }
 
-    var _makeCircle = function (pol, r, col) {
-        pol = funcOrConst(pol);
+    var _makeCircle = function (coor, r, col) {
+        coor = funcOrConst(coor);
         r = funcOrConst(r);
         col = funcOrConst(col);
-        return (canvas, t) => canvas.circlePolar(pol(t), r(t), {fillStyle: col(t)});
+        return t => self.circle(coor(t), r(t), {strokeStyle: col(t), fillStyle: col(t)});
     }
 
-    var _makeLine = function (pol1, pol2, col) {
-        pol1 = funcOrConst(pol1);
-        pol2 = funcOrConst(pol2);
+    var _makeLine = function (coor1, coor2, col) {
+        coor1 = funcOrConst(coor1);
+        coor2 = funcOrConst(coor2);
         col = funcOrConst(col);
-        return (canvas, t) => canvas.linePolar(pol1(t), pol2(t), {fillStyle: col(t)});
+        return t => self.line(coor1(t), coor2(t), {strokeStyle: col(t), fillStyle: col(t)});
     }
 
     var _animate = function (draw, t) {
         t = t || 0;
         self.clear();
-        draw(self, t);
+        draw(t);
         window.requestAnimationFrame(() => _animate(draw, t+1));
     };
 
     var _animateAll = function (draws) {
         _animate(
-            (canvas, t) => draws.map(draw => draw(canvas, t)),
+            t => draws.map(draw => draw(t)),
             0
         );
     }
@@ -178,10 +185,8 @@ function canvas(id, attrs) {
         makeLine: _makeLine,
         makeCircle: _makeCircle,
         clear: _clear,
-        lineCartesian: _lineCartesian,
-        linePolar: _linePolar,
-        circleCartesian: _circleCartesian,
-        circlePolar: _circlePolar
+        line: _line,
+        circle: _circle
     };
 
     return self;

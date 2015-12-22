@@ -5,47 +5,66 @@
     <body>
         <canvas id="canvas1"></canvas>
         <script>
-            var n1 = 16;
-            var k1 = 3;
-            var canv1 = canvas('canvas1');
-            canv1.animateAll(
-                range(n1).map(i => i/n1*tau).map(i =>
-                    canv1.makeCircle(
-                        t => [100 + 70*sin(i*k1 + t/10), i],
-                        5,
-                        hsv(i/tau, 1, 1)
+            (function () {
+                var n = 16;
+                var k = 3;
+                var canv = canvas('canvas1');
+                canv.animateAll(
+                    range(n).map(i => i/n*tau).map(i =>
+                        canv.makeCircle(
+                            t => pol(100 + 70*sin(t/10 + i*k), i),
+                            5,
+                            hsv(i/tau, 1, 1)
+                        )
                     )
-                )
-            );
+                );
+            })();
         </script>
+        <table>
+            <tr><td>Kinks</td><td><input type="text" id="kinks" value="2" /></td></tr>
+            <tr><td>Avg. Inner Radius</td><td><input type="text" id="avgRadiusInner" value="100" /></td></tr>
+            <tr><td>Var. Inner Radius</td><td><input type="text" id="varRadiusInner" value="40" /></td></tr>
+            <tr><td>Avg. Outer Radius</td><td><input type="text" id="avgRadiusOuter" value="100" /></td></tr>
+            <tr><td>Var. Outer Radius</td><td><input type="text" id="varRadiusOuter" value="80" /></td></tr>
+        </table>
         <canvas id="canvas2"></canvas>
         <script>
-            var n2 = 48;
-            var k2 = 2;
-            var canv2 = canvas('canvas2');
-            canv2.animateAll(
-                range(n2).map(i => i/n2*tau).map(i =>
-                    function (canvas, t) {
-                        var pol1 = t => [100 + 40*sin(i*k2 + t/20), i];
-                        var pol2 = t => [100 + 80*sin(-i*k2 + t/20), i];
-                        canv2.makeCircle(
-                            pol1,
+            (function () {
+                var kinksInput = document.getElementById('kinks');
+                var avgRadiusInnerInput = document.getElementById('avgRadiusInner');
+                var varRadiusInnerInput = document.getElementById('varRadiusInner');
+                var avgRadiusOuterInput = document.getElementById('avgRadiusOuter');
+                var varRadiusOuterInput = document.getElementById('varRadiusOuter');
+                var kinks = () => +kinksInput.value;
+                var avgRadiusInner = () => +avgRadiusInnerInput.value;
+                var varRadiusInner = () => +varRadiusInnerInput.value;
+                var avgRadiusOuter = () => +avgRadiusOuterInput.value;
+                var varRadiusOuter = () => +varRadiusOuterInput.value;
+
+                var n = 48;
+                var canv = canvas('canvas2');
+                var coor1 = i => t => pol(avgRadiusInner() + varRadiusInner()*sin(t/20 + i*kinks()), i);
+                var coor2 = i => t => pol(avgRadiusOuter() + varRadiusOuter()*sin(t/20 - i*kinks()), i);
+                canv.animateAll(
+                    range(n).map(i => i/n*tau).concatMap(i => [
+                        canv.makeCircle(
+                            coor1(i),
                             3,
                             '#ffffff'
-                        )(canvas, t);
-                        canv2.makeCircle(
-                            pol2,
+                        ),
+                        canv.makeCircle(
+                            coor2(i),
                             3,
                             '#ffffff'
-                        )(canvas, t);
-                        canv2.makeLine(
-                            pol1,
-                            pol2,
+                        ),
+                        canv.makeLine(
+                            coor1(i),
+                            coor2(i),
                             '#ffffff'
-                        )(canvas, t);
-                    }
-                )
-            );
+                        )
+                    ])
+                );
+            }());
         </script>
     </body>
 </html>
