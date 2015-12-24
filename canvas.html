@@ -21,6 +21,7 @@
             })();
         </script>
         <table>
+            <tr><td>Balls</td><td><input type="number" id="balls" value="48" /></td></tr>
             <tr><td>Kinks</td><td><input type="number" id="kinks" value="2" /></td></tr>
             <tr><td>Avg. Inner Radius</td><td><input type="number" id="avgRadiusInner" value="100" /></td></tr>
             <tr><td>Var. Inner Radius</td><td><input type="number" id="varRadiusInner" value="40" /></td></tr>
@@ -30,40 +31,59 @@
         <canvas id="canvas2"></canvas>
         <script>
             (function () {
+                var ballsInput = document.getElementById('balls');
                 var kinksInput = document.getElementById('kinks');
                 var avgRadiusInnerInput = document.getElementById('avgRadiusInner');
                 var varRadiusInnerInput = document.getElementById('varRadiusInner');
                 var avgRadiusOuterInput = document.getElementById('avgRadiusOuter');
                 var varRadiusOuterInput = document.getElementById('varRadiusOuter');
+
+                var inputs = [ballsInput, kinksInput, avgRadiusInnerInput, varRadiusInnerInput, avgRadiusOuterInput, varRadiusOuterInput];
+
+                var setHash = () => location.hash = '#' + inputs.map(elem => elem.value).join(',');
+                inputs.map(elem => elem.onchange = setHash);
+
+                var hash = location.hash.slice(1);
+                if (hash.length > 0) {
+                    var values = hash.split(',');
+                    ballsInput.value = values[0];
+                    kinksInput.value = values[1];
+                    avgRadiusInnerInput.value = values[2];
+                    varRadiusInnerInput.value = values[3];
+                    avgRadiusOuterInput.value = values[4];
+                    varRadiusOuterInput.value = values[5];
+                }
+
+                var balls = () => +ballsInput.value;
                 var kinks = () => +kinksInput.value;
                 var avgRadiusInner = () => +avgRadiusInnerInput.value;
                 var varRadiusInner = () => +varRadiusInnerInput.value;
                 var avgRadiusOuter = () => +avgRadiusOuterInput.value;
                 var varRadiusOuter = () => +varRadiusOuterInput.value;
 
-                var n = 48;
                 var canv = canvas('canvas2');
                 var coor1 = i => t => pol(avgRadiusInner() + varRadiusInner()*sin(t/20 + i*kinks()), i);
                 var coor2 = i => t => pol(avgRadiusOuter() + varRadiusOuter()*sin(t/20 - i*kinks()), i);
-                canv.animateAll(
-                    range(n).map(i => i/n*tau).concatMap(i => [
+
+                canv.animate(function (t) {
+                    range(balls()).map(i => i/balls()*tau).map(function (i) {
                         canv.makeCircle(
                             coor1(i),
                             3,
                             '#ffffff'
-                        ),
+                        )(t);
                         canv.makeCircle(
                             coor2(i),
                             3,
                             '#ffffff'
-                        ),
+                        )(t);
                         canv.makeLine(
                             coor1(i),
                             coor2(i),
                             '#ffffff'
-                        )
-                    ])
-                );
+                        )(t);
+                    });
+                });
             }());
         </script>
     </body>
